@@ -61,8 +61,8 @@ export default class ImageSlider {
   			time: { value: 1.0 },
         blend: { value: 0.0 },
         offset: { value: 0.0 },
-  			tex1: { type: "t", value: this.textures[0] },
-        tex2: { type: "t", value: this.textures[1] },
+  			tex1: { type: "t", value: this.textures[this.settings.curentTextureIndex] },
+        tex2: { type: "t", value: this.textures[this.settings.nextTextureIndex] },
         mask: { type: "t", value: maskTexture },
         maskScale: { value: 0.0 },
   		},
@@ -76,8 +76,8 @@ export default class ImageSlider {
     this.scene.add(this.mesh);
     this.resize();
 
-  	this.tex1 = this.textures[0];
-    this.tex2 = this.textures[1];
+  	this.tex1 = this.textures[this.settings.curentTextureIndex];
+    this.tex2 = this.textures[this.settings.nextTextureIndex];
   }
 
   setScrollPos = (newScrollPos) => {
@@ -99,22 +99,27 @@ export default class ImageSlider {
     TweenLite.fromTo(this.settings, 1, { maskScale: 1 }, { maskScale: 0 });
   }
 
-  updateTexture = (pos) => {
-    let diffPoss = Math.abs(pos % (this.textures.length * scrollPerImage));
-    if (pos < 0) {
-      diffPoss = this.textures.length * scrollPerImage - diffPoss;
+  updateIndexes = (pos) => {
+    const diffPoss = pos % (this.textures.length * scrollPerImage);
+    let indextexture = Math.floor((diffPoss / scrollPerImage));
+    if (indextexture < 0) {
+      indextexture = this.textures.length + indextexture;
+      this.settings.curentTextureIndex = indextexture;
+      this.settings.nextTextureIndex = indextexture === 0 ? this.textures.length - 1 : indextexture - 1;
+    } else {
+      this.settings.curentTextureIndex = indextexture;
+      this.settings.nextTextureIndex = (indextexture + 1) % (this.textures.length);
     }
-    
-    const indextexture = Math.floor((diffPoss / scrollPerImage));
-    const curentTextureIndex = indextexture % (this.textures.length);
-    let nextTextureIndex = (curentTextureIndex + 1) % (this.textures.length);
-    
-    if(this.tex2 != this.textures[curentTextureIndex]) {
-      this.tex2 = this.textures[curentTextureIndex]
+    console.log(this.settings.curentTextureIndex, this.settings.nextTextureIndex);
+  }
+
+  updateTexture = () => {
+    if(this.tex2 !== this.textures[this.settings.curentTextureIndex]) {
+      this.tex2 = this.textures[this.settings.curentTextureIndex]
       this.material.uniforms.tex2.value = this.tex2;
     }
-    if(this.tex1 != this.textures[nextTextureIndex]) {
-      this.tex1 = this.textures[nextTextureIndex]
+    if(this.tex1 !== this.textures[this.settings.nextTextureIndex]) {
+      this.tex1 = this.textures[this.settings.nextTextureIndex]
       this.material.uniforms.tex1.value = this.tex1;
     }
   }
@@ -122,14 +127,15 @@ export default class ImageSlider {
   draw = () => {
     requestAnimationFrame(this.draw);
     let { scrollPos, maskScale } = this.settings;
-    this.updateTexture(scrollPos);
+    this.updateIndexes(scrollPos);
+    this.updateTexture();
     const blend = (scrollPos % scrollPerImage) / scrollPerImage;
     this.material.uniforms.blend.value = blend > 0 ? blend : 1 - (blend * -1);
     this.material.uniforms.offset.value = (scrollPos % scrollPerImage) / scrollPerImage;
-
+    
     this.material.uniforms.time.value += 0.1;
     this.material.uniforms.maskScale.value = maskScale;
-
+    
     this.renderer.render(this.scene, this.camera);
   }
 

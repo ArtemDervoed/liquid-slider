@@ -37134,11 +37134,11 @@ function () {
           },
           tex1: {
             type: "t",
-            value: _this.textures[0]
+            value: _this.textures[_this.settings.curentTextureIndex]
           },
           tex2: {
             type: "t",
-            value: _this.textures[1]
+            value: _this.textures[_this.settings.nextTextureIndex]
           },
           mask: {
             type: "t",
@@ -37159,8 +37159,8 @@ function () {
 
       _this.resize();
 
-      _this.tex1 = _this.textures[0];
-      _this.tex2 = _this.textures[1];
+      _this.tex1 = _this.textures[_this.settings.curentTextureIndex];
+      _this.tex2 = _this.textures[_this.settings.nextTextureIndex];
     });
 
     _defineProperty(this, "setScrollPos", function (newScrollPos) {
@@ -37189,24 +37189,30 @@ function () {
       });
     });
 
-    _defineProperty(this, "updateTexture", function (pos) {
-      var diffPoss = Math.abs(pos % (_this.textures.length * scrollPerImage));
+    _defineProperty(this, "updateIndexes", function (pos) {
+      var diffPoss = pos % (_this.textures.length * scrollPerImage);
+      var indextexture = Math.floor(diffPoss / scrollPerImage);
 
-      if (pos < 0) {
-        diffPoss = _this.textures.length * scrollPerImage - diffPoss;
+      if (indextexture < 0) {
+        indextexture = _this.textures.length + indextexture;
+        _this.settings.curentTextureIndex = indextexture;
+        _this.settings.nextTextureIndex = indextexture === 0 ? _this.textures.length - 1 : indextexture - 1;
+      } else {
+        _this.settings.curentTextureIndex = indextexture;
+        _this.settings.nextTextureIndex = (indextexture + 1) % _this.textures.length;
       }
 
-      var indextexture = Math.floor(diffPoss / scrollPerImage);
-      var curentTextureIndex = indextexture % _this.textures.length;
-      var nextTextureIndex = (curentTextureIndex + 1) % _this.textures.length;
+      console.log(_this.settings.curentTextureIndex, _this.settings.nextTextureIndex);
+    });
 
-      if (_this.tex2 != _this.textures[curentTextureIndex]) {
-        _this.tex2 = _this.textures[curentTextureIndex];
+    _defineProperty(this, "updateTexture", function () {
+      if (_this.tex2 !== _this.textures[_this.settings.curentTextureIndex]) {
+        _this.tex2 = _this.textures[_this.settings.curentTextureIndex];
         _this.material.uniforms.tex2.value = _this.tex2;
       }
 
-      if (_this.tex1 != _this.textures[nextTextureIndex]) {
-        _this.tex1 = _this.textures[nextTextureIndex];
+      if (_this.tex1 !== _this.textures[_this.settings.nextTextureIndex]) {
+        _this.tex1 = _this.textures[_this.settings.nextTextureIndex];
         _this.material.uniforms.tex1.value = _this.tex1;
       }
     });
@@ -37217,7 +37223,9 @@ function () {
           scrollPos = _this$settings.scrollPos,
           maskScale = _this$settings.maskScale;
 
-      _this.updateTexture(scrollPos);
+      _this.updateIndexes(scrollPos);
+
+      _this.updateTexture();
 
       var blend = scrollPos % scrollPerImage / scrollPerImage;
       _this.material.uniforms.blend.value = blend > 0 ? blend : 1 - blend * -1;
@@ -37369,7 +37377,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62983" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64821" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
