@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import ScrollPos from './ScrollPos';
 
-const scrollPerImage = window.innerHeight / 3;
+// const scrollPerImage = window.innerHeight / 3;
+const scrollPerImage = 500;
 
 export default class ImageSlider {
   constructor(textures) {
@@ -10,9 +11,9 @@ export default class ImageSlider {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.settings = {
-      scrollPos: 0,
+      scrollPos: 0 + scrollPerImage * textures.length * 10,
       maskScale: 1,
-      curentTextureIndex: 0,
+      curentTextureIndex: 1,
       nextTextureIndex: 0,
     };
     this.gui = new dat.GUI();
@@ -78,6 +79,8 @@ export default class ImageSlider {
 
   	this.tex1 = this.textures[this.settings.curentTextureIndex];
     this.tex2 = this.textures[this.settings.nextTextureIndex];
+
+    console.log(this.settings.curentTextureIndex, this.settings.nextTextureIndex, 'constructor');
   }
 
   setScrollPos = (newScrollPos) => {
@@ -85,10 +88,9 @@ export default class ImageSlider {
   }
 
   setNewtexture = (index) => {
-    this.settings.scrollPos = index * scrollPerImage;
-    
-    this.tex2 = this.textures[index];
-    this.tex1 = this.textures[index];
+    this.settings.scrollPos = index * scrollPerImage + (scrollPerImage * this.textures.length * 10);
+    this.settings.curentTextureIndex = index;
+    this.settings.nextTextureIndex = index;
   }
 
   showThrowDSM = () => {
@@ -102,15 +104,8 @@ export default class ImageSlider {
   updateIndexes = (pos) => {
     const diffPoss = pos % (this.textures.length * scrollPerImage);
     let indextexture = Math.floor((diffPoss / scrollPerImage));
-    if (indextexture < 0) {
-      indextexture = this.textures.length + indextexture;
-      this.settings.curentTextureIndex = indextexture;
-      this.settings.nextTextureIndex = indextexture === 0 ? this.textures.length - 1 : indextexture - 1;
-    } else {
-      this.settings.curentTextureIndex = indextexture;
-      this.settings.nextTextureIndex = (indextexture + 1) % (this.textures.length);
-    }
-    console.log(this.settings.curentTextureIndex, this.settings.nextTextureIndex);
+    this.settings.curentTextureIndex = indextexture;
+    this.settings.nextTextureIndex = (indextexture + 1) % (this.textures.length);
   }
 
   updateTexture = () => {
@@ -126,11 +121,14 @@ export default class ImageSlider {
 
   draw = () => {
     requestAnimationFrame(this.draw);
+    if (this.settings.scrollPos < scrollPerImage * this.textures.length) {
+      this.settings.scrollPos = scrollPerImage * this.textures.length * 10;
+    }
     let { scrollPos, maskScale } = this.settings;
     this.updateIndexes(scrollPos);
     this.updateTexture();
     const blend = (scrollPos % scrollPerImage) / scrollPerImage;
-    this.material.uniforms.blend.value = blend > 0 ? blend : 1 - (blend * -1);
+    this.material.uniforms.blend.value = blend >= 0 ? blend : 1 - (blend * -1);
     this.material.uniforms.offset.value = (scrollPos % scrollPerImage) / scrollPerImage;
     
     this.material.uniforms.time.value += 0.1;

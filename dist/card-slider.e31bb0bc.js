@@ -37089,7 +37089,8 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var scrollPerImage = window.innerHeight / 3;
+// const scrollPerImage = window.innerHeight / 3;
+var scrollPerImage = 500;
 
 var ImageSlider =
 /*#__PURE__*/
@@ -37161,6 +37162,7 @@ function () {
 
       _this.tex1 = _this.textures[_this.settings.curentTextureIndex];
       _this.tex2 = _this.textures[_this.settings.nextTextureIndex];
+      console.log(_this.settings.curentTextureIndex, _this.settings.nextTextureIndex, 'constructor');
     });
 
     _defineProperty(this, "setScrollPos", function (newScrollPos) {
@@ -37168,9 +37170,9 @@ function () {
     });
 
     _defineProperty(this, "setNewtexture", function (index) {
-      _this.settings.scrollPos = index * scrollPerImage;
-      _this.tex2 = _this.textures[index];
-      _this.tex1 = _this.textures[index];
+      _this.settings.scrollPos = index * scrollPerImage + scrollPerImage * _this.textures.length * 10;
+      _this.settings.curentTextureIndex = index;
+      _this.settings.nextTextureIndex = index;
     });
 
     _defineProperty(this, "showThrowDSM", function () {
@@ -37192,17 +37194,8 @@ function () {
     _defineProperty(this, "updateIndexes", function (pos) {
       var diffPoss = pos % (_this.textures.length * scrollPerImage);
       var indextexture = Math.floor(diffPoss / scrollPerImage);
-
-      if (indextexture < 0) {
-        indextexture = _this.textures.length + indextexture;
-        _this.settings.curentTextureIndex = indextexture;
-        _this.settings.nextTextureIndex = indextexture === 0 ? _this.textures.length - 1 : indextexture - 1;
-      } else {
-        _this.settings.curentTextureIndex = indextexture;
-        _this.settings.nextTextureIndex = (indextexture + 1) % _this.textures.length;
-      }
-
-      console.log(_this.settings.curentTextureIndex, _this.settings.nextTextureIndex);
+      _this.settings.curentTextureIndex = indextexture;
+      _this.settings.nextTextureIndex = (indextexture + 1) % _this.textures.length;
     });
 
     _defineProperty(this, "updateTexture", function () {
@@ -37219,6 +37212,11 @@ function () {
 
     _defineProperty(this, "draw", function () {
       requestAnimationFrame(_this.draw);
+
+      if (_this.settings.scrollPos < scrollPerImage * _this.textures.length) {
+        _this.settings.scrollPos = scrollPerImage * _this.textures.length * 10;
+      }
+
       var _this$settings = _this.settings,
           scrollPos = _this$settings.scrollPos,
           maskScale = _this$settings.maskScale;
@@ -37228,7 +37226,7 @@ function () {
       _this.updateTexture();
 
       var blend = scrollPos % scrollPerImage / scrollPerImage;
-      _this.material.uniforms.blend.value = blend > 0 ? blend : 1 - blend * -1;
+      _this.material.uniforms.blend.value = blend >= 0 ? blend : 1 - blend * -1;
       _this.material.uniforms.offset.value = scrollPos % scrollPerImage / scrollPerImage;
       _this.material.uniforms.time.value += 0.1;
       _this.material.uniforms.maskScale.value = maskScale;
@@ -37240,9 +37238,9 @@ function () {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.settings = {
-      scrollPos: 0,
+      scrollPos: 0 + scrollPerImage * textures.length * 10,
       maskScale: 1,
-      curentTextureIndex: 0,
+      curentTextureIndex: 1,
       nextTextureIndex: 0
     };
     this.gui = new dat.GUI();
@@ -37377,7 +37375,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64821" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63747" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
